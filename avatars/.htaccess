@@ -1,0 +1,14 @@
+DirectoryIndex index.php
+
+RewriteEngine On
+
+RewriteRule http-bind/ http://aniavatars.com:5280/xmpp-httpbind/ [P]
+RewriteRule ^chat /lib/candy/live/index.php
+
+RewriteRule ^sitemap.xml$ sitemap.php
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^([^.]+).html$ index.php?&q=$1 [L]
+RewriteRule ^([^.]+)$ index.php?&q=$1
+
+
