@@ -9,6 +9,7 @@ function logInUser(param, s){
 	var pass = pWrap(param['pass']);
 	var clientId = pWrap(param['client']);
 	var isMobile = pWrap(param['mobile']);
+	var platform = pWrap(param['platform']);
 
 	if(s.isLogin){
 		sendError('alreadyauth', s);
@@ -16,13 +17,13 @@ function logInUser(param, s){
 	}
 	
 	if(mode=='user'){
-		// Проверяем данные юзера
+		// ГЏГ°Г®ГўГҐГ°ГїГҐГ¬ Г¤Г Г­Г­Г»ГҐ ГѕГ§ГҐГ°Г 
 		dbusers.findOne({'login':login, 'pass':pass}, function(err,res){
 			if(res){
 				if(res['socket']==''){
 				
 					if(res['block']==1){
-						// Юзер заблокирован
+						// ГћГ§ГҐГ° Г§Г ГЎГ«Г®ГЄГЁГ°Г®ГўГ Г­
 						s.json.send({'type':'auth', 'status':'error', 'reason':'userblocked','message':res['block_reason']});
 						return false;
 					}
@@ -69,7 +70,7 @@ function logInUser(param, s){
 		});
 	}
 	if(mode=='anonim'){
-		// Залогирование анонима
+		// Г‡Г Г«Г®ГЈГЁГ°Г®ГўГ Г­ГЁГҐ Г Г­Г®Г­ГЁГ¬Г 
 
 		if(nick.length < 3 || nick.length > config['maxNickLength']){
 			sendError('wrongnick', s);
@@ -113,6 +114,7 @@ function vkAuth(param, s){
 	var hash = pWrap(param['hash']);
 	var clientId = pWrap(param['client']);
 	var isMobile = pWrap(param['mobile']);	
+	var platform = pWrap(param['platform']);
 	
 	if(s.isLogin){
 		s.json.send({'type':'vkauth','status':'error','reason':'alreadyauth'});
@@ -124,20 +126,31 @@ function vkAuth(param, s){
 		return false;
 	}
 	
-	// Проверяем данные юзера
+	// ГЏГ°Г®ГўГҐГ°ГїГҐГ¬ Г¤Г Г­Г­Г»ГҐ ГѕГ§ГҐГ°Г 
 	dbusers.findOne({'vk_id':mid}, function(err,res){
 		if(res){
 			if(res['socket']==''){
 			
 				if(res['block']==1){
-					// Юзер заблокирован
+					// ГћГ§ГҐГ° Г§Г ГЎГ«Г®ГЄГЁГ°Г®ГўГ Г­
 					s.json.send({'type':'vkauth', 'status':'error', 'reason':'userblocked','message':res['block_reason']});
 					return false;
 				}
 			
-				if(hash != tools.md5(config['vkAppId'] + mid + config['vkAppKey'])){
-					s.json.send({'type':'vkauth', 'status':'error', 'reason':'wronghash'});
-					return false;
+				if(platform == "android") {
+					
+					if(hash != tools.md5(config['vkAppIdAndroid'] + mid + config['vkAppKeyAndroid'])){
+						s.json.send({'type':'vkauth', 'status':'error', 'reason':'wronghash'});
+						return false;
+					}
+					
+				} else {
+				
+					if(hash != tools.md5(config['vkAppId'] + mid + config['vkAppKey'])){
+						s.json.send({'type':'vkauth', 'status':'error', 'reason':'wronghash'});
+						return false;
+					}
+					
 				}
 			
 				dbusers.updateById(res['_id'], {$set: {'socket':s.id, 'last_login':time(), 'client':clientId, 'mobile':isMobile}}, function(err,res){});
